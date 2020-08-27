@@ -1,7 +1,9 @@
 <template>
   <div id="app">
     <h1>vue-svg-gauge</h1>
-    <h3>Customizable gauge component with gradients and animations for VueJs</h3>
+    <h3>
+      Customizable gauge component with gradients and animations for VueJs
+    </h3>
 
     <a href="https://github.com/hellocomet/vue-svg-gauge" class="button">
       Source on GitHub
@@ -36,7 +38,10 @@
           :end-angle="270"
           :value="random"
           :separator-step="0"
-          :gauge-color="[{ offset: 0, color: '#de3a21'}, { offset: 100, color: '#f4c009'}]"
+          :gauge-color="[
+            { offset: 0, color: '#de3a21' },
+            { offset: 100, color: '#f4c009' },
+          ]"
           :scale-interval="0"
           :inner-radius="65"
           :easing="easing"
@@ -54,7 +59,11 @@
           :end-angle="110"
           :value="random"
           :separator-step="25"
-          :gauge-color="[{ offset: 0, color: '#de3a21'}, { offset: 50, color: '#f4c009'} , { offset: 100, color: '#0b8c5a'}]"
+          :gauge-color="[
+            { offset: 0, color: '#de3a21' },
+            { offset: 50, color: '#f4c009' },
+            { offset: 100, color: '#0b8c5a' },
+          ]"
           :scale-interval="2"
           :inner-radius="80"
           :easing="easing"
@@ -65,10 +74,51 @@
           </div>
         </VueSvgGauge>
       </div>
+      <div class="mutliple-examples">
+        <VueSvgGauge
+          class="mini-gauge"
+          :start-angle="-90"
+          :end-angle="90"
+          :value="random"
+          :separator-step="0"
+          :min="0"
+          :max="100"
+          :scale-interval="0"
+          :inner-radius="75"
+          :needle-width="2"
+          :needle-length="20"
+          :show-needle="true"
+          base-color="black"
+          needle-color="tomato"
+          :inner-shadow="false"
+          :gauge-color="[
+            { offset: 0, color: 'white' },
+            { offset: 100, color: 'grey' },
+          ]"
+          :easing="easing"
+        />
+        <VueSvgGauge
+          class="mini-gauge"
+          :start-angle="0"
+          :end-angle="360"
+          :value="random"
+          :separator-step="0"
+          :min="0"
+          :max="100"
+          :show-needle="true"
+          :needle-length="-30"
+          :needle-tail-length="20"
+          :scale-interval="0"
+          :inner-radius="75"
+          base-color="black"
+          gauge-color="white"
+          inner-shadow-color="red"
+          :easing="easing"
+        />
+      </div>
 
       <div class="lets-play">
         <h2>Wanna try ?</h2>
-
         <VueSvgGauge
           class="customizable-gauge"
           :start-angle="parseInt(startAngle || 110)"
@@ -81,7 +131,10 @@
           :inner-radius="parseInt(innerRadius)"
           :separator-thickness="parseInt(separatorThickness)"
           :base-color="baseColor"
-          :gauge-color="[{ offset: 0, color: '#64bf8a' }, { offset: 100, color: '#347AB0' }]"
+          :gauge-color="[
+            { offset: 0, color: '#64bf8a' },
+            { offset: 100, color: '#347AB0' },
+          ]"
           :easing="easing"
         />
         <h3 class="customizer-title">Let's play 👇</h3>
@@ -172,7 +225,9 @@
       </div>
     </div>
 
-    <div class="bottom">Made with ❤️ at <a href="https://comet.co/">comet</a></div>
+    <div class="bottom">
+      Made with ❤️ at <a href="https://comet.co/">comet</a>
+    </div>
   </div>
 </template>
 
@@ -219,7 +274,7 @@
           return 'Gets nice 🙂'
         }
         return 'Super good 😄'
-      }
+      },
     },
     /**
      * Change the random value for the example gauges
@@ -229,9 +284,9 @@
       setInterval(() => {
         const min = 0
         const max = 100
-        this.random = Math.random() * (+max - +min) + +min;
-      }, 4000)
-    }
+        this.random = Math.random() * (+max - +min) + +min
+      }, 2000)
+    },
   }
 </script>
 
