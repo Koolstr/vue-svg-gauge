@@ -35,7 +35,8 @@
     "@tweenjs/tween.js": "^17.3.0"
   },
   "devDependencies": {
-    "@tweenjs/tween.js": "^17.3.0",
+    "@vue/cli-service": "^4.5.4",
+    "@vue/cli-plugin-babel": "^4.5.4",
     "babel-core": "^6.26.3",
     "babel-loader": "7",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
@@ -47,13 +48,16 @@
     "cross-env": "^5.2.0",
     "css-loader": "^0.28.11",
     "rimraf": "^2.6.1",
+    "stylus": "^0.54.8",
+    "stylus-loader": "^3.0.2",
     "terser-webpack-plugin": "^1.2.2",
     "uglifyjs-webpack-plugin": "^2.1.1",
-    "vue": "~2.5.22",
+    "vue": "~2.6.12",
+    "vue-cli": "^2.9.6",
     "vue-html-loader": "^1.2.4",
     "vue-loader": "^15.6.4",
     "vue-style-loader": "^4.1.2",
-    "vue-template-compiler": "~2.5.22",
+    "vue-template-compiler": "~2.6.12",
     "webpack": "^4.29.5",
     "webpack-cli": "^3.2.3",
     "webpack-merge": "^4.1.0"
