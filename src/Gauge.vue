@@ -2,34 +2,39 @@
   <div class="gauge">
     <svg
       v-if="height"
-      :viewBox="`0 0 ${RADIUS * 2} ${height}`" height="100%" width="100%"
+      :viewBox="viewBox"
+      height="100%"
+      width="100%"
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
         <!-- This puts an inner shadow on the empty part of gauge -->
         <filter :id="`innershadow-${_uid}`">
-          <feFlood flood-color="#c7c6c6" />
+          <feFlood v-if="innerShadow" :flood-color="innerShadowColor" />
           <feComposite in2="SourceAlpha" operator="out" />
-          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feGaussianBlur v-if="innerShadow" stdDeviation="2" result="blur" />
           <feComposite operator="atop" in2="SourceGraphic" />
         </filter>
 
         <!-- Determine the gradient color on the full part of the gauge -->
-        <linearGradient
-          v-if="hasGradient"
-          :id="`gaugeGradient-${_uid}`"
-        >
+        <linearGradient v-if="hasGradient" :id="`gaugeGradient-${_uid}`">
           <stop
             v-for="(color, index) in gaugeColor"
             :key="`${color.color}-${index}`"
-            :offset="`${color.offset}%`" :stop-color="color.color"
+            :offset="`${color.offset}%`"
+            :stop-color="color.color"
           />
         </linearGradient>
 
         <mask :id="`innerCircle-${_uid}`">
           <!-- Mask to make sure only the part inside the circle is visible -->
           <!-- RADIUS - 0.5 to avoid any weird display -->
-          <circle :r="RADIUS - 0.5" :cx="X_CENTER" :cy="Y_CENTER" fill="white" />
+          <circle
+            :r="RADIUS - 0.5"
+            :cx="X_CENTER"
+            :cy="Y_CENTER"
+            fill="white"
+          />
 
           <!-- Mask to remove the inside of the gauge -->
           <circle :r="innerRadius" :cx="X_CENTER" :cy="Y_CENTER" fill="black" />
@@ -39,7 +44,8 @@
             <path
               v-for="(separator, index) in separatorPaths"
               :key="index"
-              :d="separator" fill="black"
+              :d="separator"
+              fill="black"
             />
           </template>
         </mask>
@@ -49,21 +55,31 @@
         <!-- Draw a circle if the full gauge has a 360° angle, otherwise draw a path -->
         <circle
           v-if="isCircle"
-          :r="RADIUS" :cx="X_CENTER" :cy="Y_CENTER"
+          :r="RADIUS"
+          :cx="X_CENTER"
+          :cy="Y_CENTER"
           :fill="hasGradient ? `url(#gaugeGradient-${_uid})` : gaugeColor"
         />
         <path
           v-else
-          :d="basePath" :fill="hasGradient ? `url(#gaugeGradient-${_uid})` : gaugeColor"
+          :d="basePath"
+          :fill="hasGradient ? `url(#gaugeGradient-${_uid})` : gaugeColor"
         />
 
         <!-- Draw a circle if the empty gauge has a 360° angle, otherwise draw a path -->
         <circle
           v-if="value === min && isCircle"
-          :r="RADIUS" :cx="X_CENTER" :cy="Y_CENTER"
+          :r="RADIUS"
+          :cx="X_CENTER"
+          :cy="Y_CENTER"
           :fill="baseColor"
         />
-        <path v-else :d="gaugePath" :fill="baseColor" :filter="`url(#innershadow-${_uid})`" />
+        <path
+          v-else
+          :d="gaugePath"
+          :fill="baseColor"
+          :filter="`url(#innershadow-${_uid})`"
+        />
       </g>
 
       <template v-if="scaleLines">
@@ -71,10 +87,22 @@
         <line
           v-for="(line, index) in scaleLines"
           :key="`${line.xE}-${index}`"
-          :x1="line.xS" :y1="line.yS" :x2="line.xE" :y2="line.yE"
-          stroke-width="1" :stroke="baseColor"
+          :x1="line.xS"
+          :y1="line.yS"
+          :x2="line.xE"
+          :y2="line.yE"
+          stroke-width="1"
+          :stroke="baseColor"
         />
       </template>
+
+      <!-- Draw a gauge needle -->
+      <polygon
+        v-if="showNeedle"
+        class="needle"
+        :points="renderNeedle()"
+        :fill="needleColor"
+      />
 
       <!-- This allow to display html inside the svg -->
       <foreignObject x="0" y="0" width="100%" :height="height">
@@ -104,11 +132,11 @@
    * @returns {String}         - d property of the path
    */
   function polarToCartesian(radius, angle) {
-    const angleInRadians = (angle - 90) * Math.PI / 180
+    const angleInRadians = ((angle - 90) * Math.PI) / 180
 
     return {
-      x: X_CENTER + (radius * Math.cos(angleInRadians)),
-      y: Y_CENTER + (radius * Math.sin(angleInRadians)),
+      x: X_CENTER + radius * Math.cos(angleInRadians),
+      y: Y_CENTER + radius * Math.sin(angleInRadians),
     }
   }
 
@@ -126,9 +154,20 @@
     const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1'
 
     const d = [
-      'M', start.x, start.y,
-      'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y,
-      'L', X_CENTER, Y_CENTER,
+      'M',
+      start.x,
+      start.y,
+      'A',
+      radius,
+      radius,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y,
+      'L',
+      X_CENTER,
+      Y_CENTER,
     ].join(' ')
 
     return d
@@ -165,9 +204,11 @@
       startAngle: {
         type: Number,
         default: -90,
-        validator: (value) => {
+        validator: value => {
           if (value < -360 || value > 360) {
-            console.warn('GaugeChart - props "startAngle" must be between -360 and 360')
+            console.warn(
+              'GaugeChart - props "startAngle" must be between -360 and 360'
+            )
           }
           return true
         },
@@ -179,9 +220,11 @@
       endAngle: {
         type: Number,
         default: 90,
-        validator: (value) => {
+        validator: value => {
           if (value < -360 || value > 360) {
-            console.warn('GaugeChart - props "endAngle" must be between -360 and 360')
+            console.warn(
+              'GaugeChart - props "endAngle" must be between -360 and 360'
+            )
           }
           return true
         },
@@ -193,9 +236,11 @@
       innerRadius: {
         type: Number,
         default: 60,
-        validator: (value) => {
+        validator: value => {
           if (value < 0 || value > 100) {
-            console.warn(`GaugeChart - props "innerRadius" must be between 0 and ${RADIUS}`)
+            console.warn(
+              `GaugeChart - props "innerRadius" must be between 0 and ${RADIUS}`
+            )
           }
           return true
         },
@@ -207,9 +252,11 @@
       separatorStep: {
         type: Number,
         default: 10,
-        validator: (value) => {
+        validator: value => {
           if (value !== null && value < 0) {
-            console.warn('GaugeChart - props "separatorStep" must be null or >= 0')
+            console.warn(
+              'GaugeChart - props "separatorStep" must be null or >= 0'
+            )
           }
           return true
         },
@@ -229,10 +276,10 @@
        */
       gaugeColor: {
         type: [Array, String],
-        default: () => ([
+        default: () => [
           { offset: 0, color: '#347AB0' },
           { offset: 100, color: '#8CDFAD' },
-        ]),
+        ],
       },
       /**
        * Color of the base of the gauge
@@ -264,9 +311,11 @@
       scaleInterval: {
         type: Number,
         default: 5,
-        validator: (value) => {
+        validator: value => {
           if (value !== null && value < 0) {
-            console.warn('GaugeChart - props "scaleInterval" must be null or >= 0')
+            console.warn(
+              'GaugeChart - props "scaleInterval" must be null or >= 0'
+            )
           }
           return true
         },
@@ -277,6 +326,59 @@
       transitionDuration: {
         type: Number,
         default: 1500,
+      },
+      /**
+       * Flag for including an inner shadow on top of the gauge's base color
+       */
+      innerShadow: {
+        type: Boolean,
+        default: true,
+      },
+      /**
+       * Color of the inner shadow on top of the gauge's base color
+       */
+      innerShadowColor: {
+        type: String,
+        default: '#c7c6c6',
+      },
+      /**
+       * Flag for including the needle pointer
+       */
+      showNeedle: {
+        type: Boolean,
+        default: false,
+      },
+      /**
+       * Represents half the thickness of the needle
+       */
+      needleWidth: {
+        type: Number,
+        default: 5,
+      },
+      /**
+       * Represents the length of the needle past the radius/edge of the gauge.
+       * Providing a negative value will make it shorter than the gauge radius.
+       * Current known caveat is that the top and left 90-degree angles will not show this extended length,
+       * due to the bounds of the svg, even after being offset. Working on a fix.
+       */
+      needleLength: {
+        type: Number,
+        default: 15,
+      },
+      /**
+       * Represents the length of the needle past the base, in the opposite direction of the pointer.
+       * Providing a negative value will make it indent inwards into the needle instead.
+       */
+      needleTailLength: {
+        type: Number,
+        default: 15,
+      },
+      /**
+       * Color of the needle
+       */
+      needleColor: {
+        type: String,
+        default: 'red',
       },
     },
     data() {
@@ -324,7 +426,6 @@
        */
       gaugePath() {
         const { endAngle, getAngle, tweenedValue } = this
-
         return describePath(RADIUS, getAngle(tweenedValue), endAngle)
       },
       /**
@@ -356,7 +457,12 @@
        */
       separatorPaths() {
         const {
-          separatorStep, getAngle, min, max, separatorThickness, isCircle,
+          separatorStep,
+          getAngle,
+          min,
+          max,
+          separatorThickness,
+          isCircle,
         } = this
 
         if (separatorStep > 0) {
@@ -368,7 +474,9 @@
             const angle = getAngle(i)
             const halfAngle = separatorThickness / 2
 
-            paths.push(describePath(RADIUS + 2, angle - halfAngle, angle + halfAngle))
+            paths.push(
+              describePath(RADIUS + 2, angle - halfAngle, angle + halfAngle)
+            )
           }
 
           return paths
@@ -381,7 +489,12 @@
        */
       scaleLines() {
         const {
-          scaleInterval, isCircle, min, max, getAngle, innerRadius,
+          scaleInterval,
+          isCircle,
+          min,
+          max,
+          getAngle,
+          innerRadius,
         } = this
 
         if (scaleInterval > 0) {
@@ -406,6 +519,33 @@
         }
 
         return null
+      },
+      /**
+       * The dimensions of the SVG's display container.
+       * Rendered content that overflows beyond the height/width bounds defined here gets hidden.
+       */
+      viewBox() {
+        let {
+          needleLength,
+          needleTailLength,
+          needleWidth,
+          isCircle,
+          height,
+        } = this
+        //Include an offset if the tip extends beyond the gauge radius
+        let tipOffset = needleLength > 0 ? needleLength : 0
+        //Include a height offset for non-circular gauges
+        //Determined by the tail-end length and the base width, whichever is larger
+        let baseOffset = !isCircle
+          ? Math.max(needleTailLength, Math.abs(needleWidth))
+          : 0
+
+        let dimensions =
+          '0 0 ' + //Min-x and Min-y
+          (RADIUS * 2 + tipOffset) + //Width
+          ' ' +
+          (isCircle ? height + tipOffset : height + baseOffset) //Height
+        return dimensions
       },
     },
     watch: {
@@ -437,12 +577,12 @@
           new TWEEN.Tween({ tweeningValue: tweenedValue })
             .to({ tweeningValue: safeValue }, transitionDuration)
             .easing(_get(TWEEN.Easing, easing))
-            .onUpdate((object) => {
+            .onUpdate(object => {
               this.tweenedValue = object.tweeningValue
             })
             .start()
 
-            animate()
+          animate()
         },
       },
     },
@@ -455,9 +595,41 @@
       getAngle(value) {
         const { min, max, startAngle, totalAngle } = this
         // Make sure not to divide by 0
-        const totalValue = (max - min) || 1
+        const totalValue = max - min || 1
 
-        return ((value * totalAngle) / totalValue) + startAngle
+        return (value * totalAngle) / totalValue + startAngle
+      },
+      /**
+       * Generates a needle pointing at the current angle
+       * @returns {String} Coordinates used for generating the SVG
+       */
+      renderNeedle() {
+        let a = this.getAngle(this.tweenedValue) - 90
+        let rad = Math.PI / 180
+        let w = this.needleWidth
+        let l = this.needleLength
+        let tl = this.needleTailLength
+
+        //Base left corner position
+        let nx1 = X_CENTER + w * Math.cos((a - 90) * rad)
+        let ny1 = Y_CENTER + w * Math.sin((a - 90) * rad)
+
+        //Tip position
+        let nx2 = X_CENTER + (RADIUS + l) * Math.cos(a * rad)
+        let ny2 = Y_CENTER + (RADIUS + l) * Math.sin(a * rad)
+
+        //Base right corner position
+        let nx3 = X_CENTER + w * Math.cos((a + 90) * rad)
+        let ny3 = Y_CENTER + w * Math.sin((a + 90) * rad)
+
+        //Base tail-end position
+        let nx4 = X_CENTER + tl * Math.cos((a + 180) * rad)
+        let ny4 = Y_CENTER + tl * Math.sin((a + 180) * rad)
+
+        //Generate SVG coordinates string
+        let points = nx1 + ',' + ny1 + ' ' + nx2 + ',' + ny2 + ' '
+        points += nx3 + ',' + ny3 + ' ' + nx4 + ',' + ny4
+        return points
       },
     },
   }
